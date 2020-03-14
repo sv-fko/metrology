@@ -56,6 +56,15 @@ class Registry(object):
             key = self._compose_key(name)
             return self.metrics[key]
 
+    def add(self, name, metric):
+        with self.lock:
+            key = self._compose_key(name)
+            if key in self.metrics:
+                raise RegistryException("{0} already present "
+                                        "in the registry.".format(name))
+            else:
+                self.metrics[key] = metric
+
     def add_or_get(self, name, klass):
         with self.lock:
             key = self._compose_key(name)
