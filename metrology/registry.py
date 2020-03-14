@@ -95,4 +95,5 @@ class Registry(object):
                 name, tags = self._decompose_key(key)
                 yield name, tags, metric
 
+
 registry = Registry()

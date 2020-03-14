@@ -173,7 +173,8 @@ class StatsDReporter(Reporter):
         """Serialize and send available measures of a metric."""
 
         return [
-            self.format_metric_string(m_name, getattr(metric, key), m_type, tags)
+            self.format_metric_string(m_name, getattr(metric, key),
+                                      m_type, tags)
             for key in keys
         ]
 

@@ -50,21 +50,26 @@ class GraphiteReporter(Reporter):
             self._send = self._send_plaintext
             self.batch_buffer = ""
 
-        self.invalid_metric_chars_regex, self.invalid_tag_chars_regex = self._compile_validation_regexes()
+        self._compile_validation_regexes()
 
     def _compile_validation_regexes(self):
         # taken from graphite-web/webapp/graphite/render/grammar.py
-        printables = "".join(c for c in string.printable if c not in string.whitespace)
-        prohibited_metric_chars = '''(){},.'"\\|'''
+        printables = "".join(c for c in string.printable
+                             if c not in string.whitespace)
+        invalid_metric_chars = '''(){},.'"\\|'''
         # the '.' is needed because the regex is applied to complete pathes
-        valid_metric_chars = ''.join((set(printables) - set(prohibited_metric_chars)) | set('.'))
-        invalid_metric_chars_regex = re.compile('[^%s]+' % re.escape(valid_metric_chars))
+        valid_metric_chars = ''.join((set(printables)
+                                      - set(invalid_metric_chars)) | set('.'))
+        invalid_chars = '[^%s]+' % re.escape(valid_metric_chars)
+        self.invalid_metric_chars_regex = re.compile(invalid_chars)
 
         # taken from carbon/util.py TaggedSeries
         prohibited_tag_chars = ';!^='
-        valid_tag_chars = ''.join(set(printables) - set(prohibited_metric_chars) - set(prohibited_tag_chars))
-        invalid_tag_chars_regex = re.compile('[^%s]+' % re.escape(valid_tag_chars))
-        return invalid_metric_chars_regex, invalid_tag_chars_regex
+        valid_tag_chars = ''.join(set(printables)
+                                  - set(invalid_metric_chars)
+                                  - set(prohibited_tag_chars))
+        invalid_tag_chars = '[^%s]+' % re.escape(valid_tag_chars)
+        self.invalid_tag_chars_regex = re.compile(invalid_tag_chars)
 
     @property
     def socket(self):
@@ -120,7 +125,8 @@ class GraphiteReporter(Reporter):
         # Send metrics that might be in buffers
         self._send()
 
-    def send_metric(self, name, type, metric, keys, snapshot_keys=None, tags=None):
+    def send_metric(self, name, type, metric, keys,
+                    snapshot_keys=None, tags=None):
         if snapshot_keys is None:
             snapshot_keys = []
         base_name = self.invalid_metric_chars_regex.sub("_", name)
@@ -147,8 +153,8 @@ class GraphiteReporter(Reporter):
         value = str(value)
         # value must not be empty (taken from carbon/util.py)
         value = value if len(value) > 0 else "empty_value"
-        # value must not contain ; and not start with ~ (taken from carbon/util.py)
-        value = str(value).replace(';','_')
+        # value must not contain ; and not start with ~
+        value = str(value).replace(';', '_')
         if value[0] == '~':
             value = '_' + value.lstrip('~')
 
@@ -159,7 +165,8 @@ class GraphiteReporter(Reporter):
         if tags is not None:
             metric_name = '{0};{1}'.format(
                 metric_name,
-                ";".join([self._format_tag(tag, value) for tag, value in tags.items()]))
+                ";".join([self._format_tag(tag, value)
+                          for tag, value in tags.items()]))
         return metric_name
 
     def _buffered_plaintext_send_metric(self, base_name, name, tags, value, t,

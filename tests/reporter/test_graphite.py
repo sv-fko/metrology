@@ -54,7 +54,8 @@ class GraphiteReporterTest(TestCase):
 
         self.reporter.write()
         self.assertTrue(mock.sendall.called)
-        sent_text = ''.join(call[0][0].decode("ascii") for call in mock.sendall.call_args_list)
+        sent_text = ''.join(call[0][0].decode("ascii")
+                            for call in mock.sendall.call_args_list)
         self.assertIn("meter.count;", sent_text)
         self.assertIn(";type=A", sent_text)
         self.assertIn(";category=B", sent_text)
@@ -68,7 +69,8 @@ class GraphiteReporterTest(TestCase):
 
         self.reporter.write()
         self.assertTrue(mock.sendall.called)
-        sent_text = ''.join(call[0][0].decode("ascii") for call in mock.sendall.call_args_list)
+        sent_text = ''.join(call[0][0].decode("ascii")
+                            for call in mock.sendall.call_args_list)
         self.assertIn("test._met_er_", sent_text)
         self.reporter.stop()
 
@@ -86,7 +88,8 @@ class GraphiteReporterTest(TestCase):
 
         self.reporter.write()
         self.assertTrue(mock.sendall.called)
-        sent_text = ''.join(call[0][0].decode("ascii") for call in mock.sendall.call_args_list)
+        sent_text = ''.join(call[0][0].decode("ascii")
+                            for call in mock.sendall.call_args_list)
         self.assertIn("typ_e_=_A", sent_text)
         self.assertIn("empty_tag=empty_value", sent_text)
         self.reporter.stop()

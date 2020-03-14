@@ -99,7 +99,8 @@ class LibratoReporter(Reporter):
                       auth=(self.email, self.token),
                       headers={'content-type': 'application/json'})
 
-    def prepare_metric(self, name, type, metric, keys, snapshot_keys=[], tags=None):
+    def prepare_metric(self, name, type, metric, keys,
+                       snapshot_keys=[], tags=None):
         base_name = re.sub(r"\s+", "_", name)
         if self.prefix:
             base_name = "{0}.{1}".format(self.prefix, base_name)

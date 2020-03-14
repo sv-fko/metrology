@@ -70,7 +70,8 @@ class LoggerReporter(Reporter):
                     'median', 'percentile_95th'
                 ], tags=tags)
 
-    def log_metric(self, name, type, metric, keys, snapshot_keys=None, tags=None):
+    def log_metric(self, name, type, metric, keys,
+                   snapshot_keys=None, tags=None):
         if snapshot_keys is None:
             snapshot_keys = []
         messages = []
@@ -81,7 +82,8 @@ class LoggerReporter(Reporter):
         messages.append(type)
 
         if tags is not None:
-            tag_msg = ", ".join(["{0}={1}".format(k, v) for k, v in tags.items()])
+            tag_msg = ", ".join(["{0}={1}".format(k, v)
+                                 for k, v in tags.items()])
             tag_msg = "[{0}]".format(tag_msg)
             messages.append(tag_msg)
 
