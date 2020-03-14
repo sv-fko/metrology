@@ -61,28 +61,34 @@ class RegistryTest(TestCase):
             self.registry.histogram("test")
 
     def test_identity_w_tags(self):
-        a = self.registry.counter("test", tags={
+        a = self.registry.counter({
+                "name": "test",
                 "type": "A"
             })
-        b = self.registry.counter("test", tags={
+        b = self.registry.counter({
+                "name": "test",
                 "type": "A"
             })
         self.assertEqual(id(a), id(b))
 
     def test_separation_w_tags(self):
-        a = self.registry.counter("test", tags={
+        a = self.registry.counter({
+                "name": "test",
                 "type": "A"
             })
-        b = self.registry.counter("test", tags={
+        b = self.registry.counter({
+                "name": "test",
                 "type": "B"
             })
         self.assertNotEqual(id(a), id(b))
 
     def test_type_identity_w_tags(self):
-        self.registry.counter("test", tags={
+        self.registry.counter({
+                "name": "test",
                 "type": "A"
             })
         with self.assertRaises(RegistryException):
-            self.registry.histogram("test", tags={
+            self.registry.histogram({
+                "name": "test",
                 "type": "A"
             })

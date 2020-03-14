@@ -79,17 +79,17 @@ class GraphiteReporter(Reporter):
         return self._socket
 
     def write(self):
-        for name, tags, metric in self.registry:
+        for name, metric in self.registry.with_tags:
 
             if isinstance(metric, Meter):
                 self.send_metric(name, 'meter', metric, [
                     'count', 'one_minute_rate', 'five_minute_rate',
                     'fifteen_minute_rate', 'mean_rate'
-                ], tags=tags)
+                ])
             if isinstance(metric, Gauge):
                 self.send_metric(name, 'gauge', metric, [
                     'value'
-                ], tags=tags)
+                ])
             if isinstance(metric, UtilizationTimer):
                 self.send_metric(name, 'timer', metric, [
                     'count', 'one_minute_rate', 'five_minute_rate',
@@ -100,7 +100,7 @@ class GraphiteReporter(Reporter):
                 ], [
                     'median', 'percentile_95th', 'percentile_99th',
                     'percentile_999th'
-                ], tags=tags)
+                ])
             if isinstance(metric, Timer):
                 self.send_metric(name, 'timer', metric, [
                     'count', 'total_time', 'one_minute_rate',
@@ -109,26 +109,27 @@ class GraphiteReporter(Reporter):
                 ], [
                     'median', 'percentile_95th', 'percentile_99th',
                     'percentile_999th'
-                ], tags=tags)
+                ])
             if isinstance(metric, Counter):
                 self.send_metric(name, 'counter', metric, [
                     'count'
-                ], tags=tags)
+                ])
             if isinstance(metric, Histogram):
                 self.send_metric(name, 'histogram', metric, [
                     'count', 'min', 'max', 'mean', 'stddev',
                 ], [
                     'median', 'percentile_95th', 'percentile_99th',
                     'percentile_999th'
-                ], tags=tags)
+                ])
 
         # Send metrics that might be in buffers
         self._send()
 
-    def send_metric(self, name, type, metric, keys,
-                    snapshot_keys=None, tags=None):
+    def send_metric(self, name, type, metric, keys, snapshot_keys=None):
         if snapshot_keys is None:
             snapshot_keys = []
+        name, tags = name if isinstance(name, tuple) else (name, None)
+
         base_name = self.invalid_metric_chars_regex.sub("_", name)
         if self.prefix:
             base_name = "{0}.{1}".format(self.prefix, base_name)

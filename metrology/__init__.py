@@ -3,40 +3,40 @@ from metrology.registry import registry
 
 class Metrology(object):
     @classmethod
-    def get(cls, name, tags=None):
-        return registry.get(name, tags)
+    def get(cls, name):
+        return registry.get(name)
 
     @classmethod
-    def counter(cls, name, tags=None):
-        return registry.counter(name, tags)
+    def counter(cls, name):
+        return registry.counter(name)
 
     @classmethod
-    def derive(cls, name, tags=None):
-        return registry.derive(name, tags)
+    def derive(cls, name):
+        return registry.derive(name)
 
     @classmethod
-    def meter(cls, name, tags=None):
-        return registry.meter(name, tags)
+    def meter(cls, name):
+        return registry.meter(name)
 
     @classmethod
-    def gauge(cls, name, gauge, tags=None):
-        return registry.gauge(name, gauge, tags)
+    def gauge(cls, name, gauge):
+        return registry.gauge(name, gauge)
 
     @classmethod
-    def timer(cls, name, tags=None):
-        return registry.timer(name, tags)
+    def timer(cls, name):
+        return registry.timer(name)
 
     @classmethod
-    def utilization_timer(cls, name, tags=None):
-        return registry.utilization_timer(name, tags)
+    def utilization_timer(cls, name):
+        return registry.utilization_timer(name)
 
     @classmethod
-    def histogram(cls, name, histogram=None, tags=None):
-        return registry.histogram(name, histogram, tags)
+    def histogram(cls, name, histogram=None):
+        return registry.histogram(name, histogram)
 
     @classmethod
-    def health_check(cls, name, health_check, tags=None):
-        return registry.health_check(name, health_check, tags)
+    def health_check(cls, name, health_check):
+        return registry.health_check(name, health_check)
 
     @classmethod
     def stop(cls):

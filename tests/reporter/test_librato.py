@@ -18,7 +18,8 @@ class LibratoReporterTest(TestCase):
         Metrology.meter('meter').mark()
         Metrology.counter('counter').increment()
         Metrology.timer('timer').update(5)
-        Metrology.utilization_timer('utimer', tags={
+        Metrology.utilization_timer({
+                'name': 'utimer',
                 'type': 'A'
             }).update(5)
 

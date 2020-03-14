@@ -25,40 +25,40 @@ class Registry(object):
                     metric.stop()
             self.metrics.clear()
 
-    def counter(self, name, tags=None):
-        return self.add_or_get(name, Counter, tags)
+    def counter(self, name):
+        return self.add_or_get(name, Counter)
 
-    def meter(self, name, tags=None):
-        return self.add_or_get(name, Meter, tags)
+    def meter(self, name):
+        return self.add_or_get(name, Meter)
 
-    def gauge(self, name, klass, tags=None):
-        return self.add_or_get(name, klass, tags)
+    def gauge(self, name, klass):
+        return self.add_or_get(name, klass)
 
-    def timer(self, name, tags=None):
-        return self.add_or_get(name, Timer, tags)
+    def timer(self, name):
+        return self.add_or_get(name, Timer)
 
-    def utilization_timer(self, name, tags=None):
-        return self.add_or_get(name, UtilizationTimer, tags)
+    def utilization_timer(self, name):
+        return self.add_or_get(name, UtilizationTimer)
 
-    def health_check(self, name, klass, tags=None):
-        return self.add_or_get(name, klass, tags)
+    def health_check(self, name, klass):
+        return self.add_or_get(name, klass)
 
-    def histogram(self, name, klass=None, tags=None):
+    def histogram(self, name, klass=None):
         if not klass:
             klass = HistogramUniform
-        return self.add_or_get(name, klass, tags)
+        return self.add_or_get(name, klass)
 
-    def derive(self, name, tags=None):
-        return self.add_or_get(name, Derive, tags)
+    def derive(self, name):
+        return self.add_or_get(name, Derive)
 
-    def get(self, name, tags=None):
+    def get(self, name):
         with self.lock:
-            key = self._compose_key(name, tags)
+            key = self._compose_key(name)
             return self.metrics[key]
 
-    def add_or_get(self, name, klass, tags=None):
+    def add_or_get(self, name, klass):
         with self.lock:
-            key = self._compose_key(name, tags)
+            key = self._compose_key(name)
             metric = self.metrics.get(key)
             if metric is not None:
                 if not isinstance(metric, klass):
@@ -75,25 +75,31 @@ class Registry(object):
     def stop(self):
         self.clear()
 
-    def _compose_key(self, name, tags=None):
-        tags = tags or {}
-        if 'name' in tags:
-            raise ArgumentException('Tags must not contain a name entry.')
-        tags['name'] = name
-        return frozenset(tags.items())
+    def _compose_key(self, name):
+        if isinstance(name, dict):
+            if 'name' not in name:
+                raise ArgumentException('Tagged metric needs a name entry: ' + str(name))
+        else:
+            name = {'name': name}
+        return frozenset(name.items())
 
     def _decompose_key(self, key):
-        tags = {k: v for k, v in key}
-        name = tags['name']
-        del tags['name']
-        tags = tags or None
-        return name, tags
+        key = dict(key)
+        name = key.pop('name')
+        return (name, key if len(key) > 0 else None)
 
     def __iter__(self):
         with self.lock:
             for key, metric in self.metrics.items():
-                name, tags = self._decompose_key(key)
-                yield name, tags, metric
+                key = dict(key)
+                yield key['name'], metric
+
+    @property
+    def with_tags(self):
+        with self.lock:
+            for key, metric in self.metrics.items():
+                key = self._decompose_key(key)
+                yield key, metric
 
 
 registry = Registry()

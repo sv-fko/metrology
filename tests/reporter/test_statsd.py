@@ -79,7 +79,8 @@ class StatsDReporterTest(TestCase):
         self.reporter = StatsDReporter('localhost', 3333,
                                        batch_size=1, conn_type='tcp')
 
-        Metrology.meter('meter', tags={
+        Metrology.meter({
+                'name': 'meter',
                 'type': 'A',
                 'category': 'B'
             }).mark()

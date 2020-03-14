@@ -31,16 +31,16 @@ class LoggerReporter(Reporter):
         super(LoggerReporter, self).__init__(**options)
 
     def write(self):
-        for name, tags, metric in self.registry:
+        for name, metric in self.registry.with_tags:
             if isinstance(metric, Meter):
                 self.log_metric(name, 'meter', metric, [
                     'count', 'one_minute_rate', 'five_minute_rate',
                     'fifteen_minute_rate', 'mean_rate'
-                ], tags=tags)
+                ])
             if isinstance(metric, Gauge):
                 self.log_metric(name, 'gauge', metric, [
                     'value'
-                ], tags=tags)
+                ])
             if isinstance(metric, UtilizationTimer):
                 self.log_metric(name, 'timer', metric, [
                     'count', 'one_minute_rate', 'five_minute_rate',
@@ -50,7 +50,7 @@ class LoggerReporter(Reporter):
                     'fifteen_minute_utilization', 'mean_utilization'
                 ], [
                     'median', 'percentile_95th'
-                ], tags=tags)
+                ])
             if isinstance(metric, Timer):
                 self.log_metric(name, 'timer', metric, [
                     'count', 'total_time', 'one_minute_rate',
@@ -58,22 +58,22 @@ class LoggerReporter(Reporter):
                     'min', 'max', 'mean', 'stddev'
                 ], [
                     'median', 'percentile_95th'
-                ], tags=tags)
+                ])
             if isinstance(metric, Counter):
                 self.log_metric(name, 'counter', metric, [
                     'count'
-                ], tags=tags)
+                ])
             if isinstance(metric, Histogram):
                 self.log_metric(name, 'histogram', metric, [
                     'count', 'min', 'max', 'mean', 'stddev',
                 ], [
                     'median', 'percentile_95th'
-                ], tags=tags)
+                ])
 
-    def log_metric(self, name, type, metric, keys,
-                   snapshot_keys=None, tags=None):
+    def log_metric(self, name, type, metric, keys, snapshot_keys=None):
         if snapshot_keys is None:
             snapshot_keys = []
+        name, tags = name if isinstance(name, tuple) else (name, None)
         messages = []
         if self.prefix:
             messages.append(self.prefix)

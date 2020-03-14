@@ -38,7 +38,7 @@ class GangliaReporter(Reporter):
         self.groups[metric_name] = group_name
 
     def write(self):
-        for name, tags, metric in self.registry:
+        for name, metric in self.registry:
             if isinstance(metric, Meter):
                 self.send(name, 'Count', metric.count, 'int32', 'count')
                 self.send(name, 'One Minute Rate', metric.one_minute_rate,

@@ -135,10 +135,10 @@ class StatsDReporter(Reporter):
         return self._socket
 
     def write(self):
-        for name, tags, metric in self.registry:
+        for name, metric in self.registry.with_tags:
 
             if self._is_metric_supported(metric):
-                self.send_metric(name, metric, tags)
+                self.send_metric(name, metric)
 
         self._send()
 
@@ -152,8 +152,7 @@ class StatsDReporter(Reporter):
                 metric,
                 name,
                 config['keys'],
-                config['serialized_type'],
-                tags
+                config['serialized_type']
             )
         )
 
@@ -164,8 +163,7 @@ class StatsDReporter(Reporter):
                     metric.snapshot,
                     name,
                     config['snapshot_keys'],
-                    config['serialized_type'],
-                    tags
+                    config['serialized_type']
                 )
             )
 
@@ -174,7 +172,7 @@ class StatsDReporter(Reporter):
 
         return [
             self.format_metric_string(m_name, getattr(metric, key),
-                                      m_type, tags)
+                                      m_type)
             for key in keys
         ]
 
@@ -184,6 +182,8 @@ class StatsDReporter(Reporter):
         # NOTE(romcheg): This serialized metric template is based on
         #                statsd's documentation.
         template = '{name}:{value}|{m_type}\n'
+
+        name, tags = name if isinstance(name, tuple) else (name, None)
 
         if self.prefix:
             name = "{prefix}.{m_name}".format(prefix=self.prefix, m_name=name)

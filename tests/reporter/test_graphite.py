@@ -47,7 +47,8 @@ class GraphiteReporterTest(TestCase):
     def test_metric_w_tags(self, mock):
         self.reporter = GraphiteReporter('localhost', 3333, batch_size=1)
 
-        Metrology.meter('meter', tags={
+        Metrology.meter({
+                "name": "meter",
                 "type": "A",
                 "category": "B"
             }).mark()
@@ -78,11 +79,13 @@ class GraphiteReporterTest(TestCase):
     def test_sanitize_metric_w_tags(self, mock):
         self.reporter = GraphiteReporter('localhost', 3333, batch_size=1)
 
-        Metrology.meter('meter', tags={
+        Metrology.meter({
+                "name": "meter",
                 "typ;e=": "~A"
             }).mark()
 
-        Metrology.meter('meter2', tags={
+        Metrology.meter({
+                "name": "meter2",
                 "": ""
             }).mark()
 
