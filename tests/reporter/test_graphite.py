@@ -42,3 +42,51 @@ class GraphiteReporterTest(TestCase):
         self.assertTrue(mock.sendall.called)
         self.assertEqual(30, len(mock.sendall.call_args_list))
         self.reporter.stop()
+
+    @patch.object(GraphiteReporter, 'socket')
+    def test_metric_w_tags(self, mock):
+        self.reporter = GraphiteReporter('localhost', 3333, batch_size=1)
+
+        Metrology.meter('meter', tags={
+                "type": "A",
+                "category": "B"
+            }).mark()
+
+        self.reporter.write()
+        self.assertTrue(mock.sendall.called)
+        sent_text = ''.join(call[0][0].decode("ascii") for call in mock.sendall.call_args_list)
+        self.assertIn("meter.count;", sent_text)
+        self.assertIn(";type=A", sent_text)
+        self.assertIn(";category=B", sent_text)
+        self.reporter.stop()
+
+    @patch.object(GraphiteReporter, 'socket')
+    def test_sanitize_metric(self, mock):
+        self.reporter = GraphiteReporter('localhost', 3333, batch_size=1)
+
+        Metrology.meter('test.{met"er)|').mark()
+
+        self.reporter.write()
+        self.assertTrue(mock.sendall.called)
+        sent_text = ''.join(call[0][0].decode("ascii") for call in mock.sendall.call_args_list)
+        self.assertIn("test._met_er_", sent_text)
+        self.reporter.stop()
+
+    @patch.object(GraphiteReporter, 'socket')
+    def test_sanitize_metric_w_tags(self, mock):
+        self.reporter = GraphiteReporter('localhost', 3333, batch_size=1)
+
+        Metrology.meter('meter', tags={
+                "typ;e=": "~A"
+            }).mark()
+
+        Metrology.meter('meter2', tags={
+                "": ""
+            }).mark()
+
+        self.reporter.write()
+        self.assertTrue(mock.sendall.called)
+        sent_text = ''.join(call[0][0].decode("ascii") for call in mock.sendall.call_args_list)
+        self.assertIn("typ_e_=_A", sent_text)
+        self.assertIn("empty_tag=empty_value", sent_text)
+        self.reporter.stop()

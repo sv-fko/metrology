@@ -2,7 +2,7 @@ import inspect
 
 from threading import RLock
 
-from metrology.exceptions import RegistryException
+from metrology.exceptions import RegistryException, ArgumentException
 from metrology.instruments import (
     Counter,
     Derive,
@@ -25,47 +25,41 @@ class Registry(object):
                     metric.stop()
             self.metrics.clear()
 
-    def counter(self, name):
-        return self.add_or_get(name, Counter)
+    def counter(self, name, tags=None):
+        return self.add_or_get(name, Counter, tags)
 
-    def meter(self, name):
-        return self.add_or_get(name, Meter)
+    def meter(self, name, tags=None):
+        return self.add_or_get(name, Meter, tags)
 
-    def gauge(self, name, klass):
-        return self.add_or_get(name, klass)
+    def gauge(self, name, klass, tags=None):
+        return self.add_or_get(name, klass, tags)
 
-    def timer(self, name):
-        return self.add_or_get(name, Timer)
+    def timer(self, name, tags=None):
+        return self.add_or_get(name, Timer, tags)
 
-    def utilization_timer(self, name):
-        return self.add_or_get(name, UtilizationTimer)
+    def utilization_timer(self, name, tags=None):
+        return self.add_or_get(name, UtilizationTimer, tags)
 
-    def health_check(self, name, klass):
-        return self.add_or_get(name, klass)
+    def health_check(self, name, klass, tags=None):
+        return self.add_or_get(name, klass, tags)
 
-    def histogram(self, name, klass=None):
+    def histogram(self, name, klass=None, tags=None):
         if not klass:
             klass = HistogramUniform
-        return self.add_or_get(name, klass)
+        return self.add_or_get(name, klass, tags)
 
-    def derive(self, name):
-        return self.add_or_get(name, Derive)
+    def derive(self, name, tags=None):
+        return self.add_or_get(name, Derive, tags)
 
-    def get(self, name):
+    def get(self, name, tags=None):
         with self.lock:
-            return self.metrics[name]
+            key = self._compose_key(name, tags)
+            return self.metrics[key]
 
-    def add(self, name, metric):
+    def add_or_get(self, name, klass, tags=None):
         with self.lock:
-            if name in self.metrics:
-                raise RegistryException("{0} already present "
-                                        "in the registry.".format(name))
-            else:
-                self.metrics[name] = metric
-
-    def add_or_get(self, name, klass):
-        with self.lock:
-            metric = self.metrics.get(name)
+            key = self._compose_key(name, tags)
+            metric = self.metrics.get(key)
             if metric is not None:
                 if not isinstance(metric, klass):
                     raise RegistryException("{0} is not of "
@@ -75,16 +69,30 @@ class Registry(object):
                     metric = klass()
                 else:
                     metric = klass
-                self.metrics[name] = metric
+                self.metrics[key] = metric
             return metric
 
     def stop(self):
         self.clear()
 
+    def _compose_key(self, name, tags=None):
+        tags = tags or {}
+        if 'name' in tags:
+            raise ArgumentException('Tags must not contain a name entry.')
+        tags['name'] = name
+        return frozenset(tags.items())
+
+    def _decompose_key(self, key):
+        tags = {k: v for k, v in key}
+        name = tags['name']
+        del tags['name']
+        tags = tags or None
+        return name, tags
+
     def __iter__(self):
         with self.lock:
-            for name, metric in self.metrics.items():
-                yield name, metric
-
+            for key, metric in self.metrics.items():
+                name, tags = self._decompose_key(key)
+                yield name, tags, metric
 
 registry = Registry()

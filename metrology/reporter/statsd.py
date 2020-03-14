@@ -135,14 +135,14 @@ class StatsDReporter(Reporter):
         return self._socket
 
     def write(self):
-        for name, metric in self.registry:
+        for name, tags, metric in self.registry:
 
             if self._is_metric_supported(metric):
-                self.send_metric(name, metric)
+                self.send_metric(name, metric, tags)
 
         self._send()
 
-    def send_metric(self, name, metric):
+    def send_metric(self, name, metric, tags=None):
         """Send metric and its snapshot."""
         config = SERIALIZER_CONFIG[class_name(metric)]
 
@@ -152,7 +152,8 @@ class StatsDReporter(Reporter):
                 metric,
                 name,
                 config['keys'],
-                config['serialized_type']
+                config['serialized_type'],
+                tags
             )
         )
 
@@ -163,19 +164,20 @@ class StatsDReporter(Reporter):
                     metric.snapshot,
                     name,
                     config['snapshot_keys'],
-                    config['serialized_type']
+                    config['serialized_type'],
+                    tags
                 )
             )
 
-    def serialize_metric(self, metric, m_name, keys, m_type):
+    def serialize_metric(self, metric, m_name, keys, m_type, tags=None):
         """Serialize and send available measures of a metric."""
 
         return [
-            self.format_metric_string(m_name, getattr(metric, key), m_type)
+            self.format_metric_string(m_name, getattr(metric, key), m_type, tags)
             for key in keys
         ]
 
-    def format_metric_string(self, name, value, m_type):
+    def format_metric_string(self, name, value, m_type, tags=None):
         """Compose a statsd compatible string for a metric's measurement."""
 
         # NOTE(romcheg): This serialized metric template is based on
@@ -184,6 +186,10 @@ class StatsDReporter(Reporter):
 
         if self.prefix:
             name = "{prefix}.{m_name}".format(prefix=self.prefix, m_name=name)
+
+        if tags:
+            tags = ",".join(["{0}={1}".format(k, v) for k, v in tags.items()])
+            name = "{name},{tags}".format(name=name, tags=tags)
 
         return template.format(name=name, value=value, m_type=m_type)
 
