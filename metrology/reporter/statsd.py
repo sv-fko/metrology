@@ -142,7 +142,7 @@ class StatsDReporter(Reporter):
 
         self._send()
 
-    def send_metric(self, name, metric, tags=None):
+    def send_metric(self, name, metric):
         """Send metric and its snapshot."""
         config = SERIALIZER_CONFIG[class_name(metric)]
 
@@ -167,16 +167,15 @@ class StatsDReporter(Reporter):
                 )
             )
 
-    def serialize_metric(self, metric, m_name, keys, m_type, tags=None):
+    def serialize_metric(self, metric, m_name, keys, m_type):
         """Serialize and send available measures of a metric."""
 
         return [
-            self.format_metric_string(m_name, getattr(metric, key),
-                                      m_type)
+            self.format_metric_string(m_name, getattr(metric, key), m_type)
             for key in keys
         ]
 
-    def format_metric_string(self, name, value, m_type, tags=None):
+    def format_metric_string(self, name, value, m_type):
         """Compose a statsd compatible string for a metric's measurement."""
 
         # NOTE(romcheg): This serialized metric template is based on
