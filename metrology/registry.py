@@ -87,7 +87,8 @@ class Registry(object):
     def _compose_key(self, name):
         if isinstance(name, dict):
             if 'name' not in name:
-                raise ArgumentException('Tagged metric needs a name entry: ' + str(name))
+                raise ArgumentException('Tagged metric needs a name entry: '
+                                        + str(name))
         else:
             name = {'name': name}
         return frozenset(name.items())
